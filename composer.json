@@ -1,0 +1,22 @@
+{
+    "name": "syafiqmk/simple-php-framework",
+    "description": "Framework PHP sederhana dengan arsitektur Model-View-Controller (MVC)",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Syafiq Muhammad Kahfi",
+            "email": "syafiqmk@example.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "System\\": "system/"
+        }
+    }
+}

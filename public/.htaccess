@@ -1,0 +1,12 @@
+# Enable rewrite engine
+RewriteEngine On
+
+# Set rewrite base
+RewriteBase /
+
+# Don't rewrite for existing files or directories
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Rewrite all other requests to index.php
+RewriteRule ^(.*)$ index.php/$1 [L,QSA]
