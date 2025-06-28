@@ -320,11 +320,15 @@ class Route
             $path = str_replace("{{$paramName}}", $paramValue, $path);
         }
 
-        // Add base URL
-        $baseUrl = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-        $baseUrl .= $_SERVER['HTTP_HOST'];
+        // Add base URL if in web context
+        if (PHP_SAPI !== 'cli' && isset($_SERVER['HTTP_HOST'])) {
+            $baseUrl = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+            $baseUrl .= $_SERVER['HTTP_HOST'];
+            return $baseUrl . '/' . $path;
+        }
 
-        return $baseUrl . '/' . $path;
+        // Just return path for CLI or test environment
+        return '/' . $path;
     }
 
     /**
@@ -410,5 +414,19 @@ class Route
     {
         $pattern = preg_replace('/\/{([^}]+)}/', '/([^/]+)', $route);
         return '#^' . $pattern . '$#';
+    }
+
+    /**
+     * Reset route collections (for testing purposes)
+     * 
+     * @return void
+     */
+    public static function reset()
+    {
+        self::$routes = [];
+        self::$namedRoutes = [];
+        self::$prefix = '';
+        self::$middleware = [];
+        self::$namePrefix = '';
     }
 }

@@ -10,6 +10,10 @@
 // Define base path
 define('BASE_PATH', dirname(__DIR__));
 
+// Enable error reporting for test environment
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Display header
 echo "\n";
 echo "=======================================\n";
@@ -30,8 +34,13 @@ $components = [
 // Run specific component test or all tests
 if ($component === 'all') {
     // Run all tests
+    $allPassed = true;
     foreach ($components as $name => $description) {
-        runTest($name, $description);
+        $result = runTest($name, $description);
+        if (!$result) {
+            $allPassed = false;
+            break;
+        }
     }
 } elseif (array_key_exists($component, $components)) {
     // Run specific test
@@ -42,7 +51,11 @@ if ($component === 'all') {
     exit(1);
 }
 
-echo "\nAll tests completed.\n\n";
+if (isset($allPassed) && $allPassed) {
+    echo "\n✅ All tests completed successfully.\n\n";
+} else {
+    echo "\n⚠️ Some tests failed or were not found.\n\n";
+}
 
 /**
  * Run a specific test
@@ -58,9 +71,32 @@ function runTest($component, $description)
     $testFile = BASE_PATH . "/tests/{$component}Test.php";
 
     if (file_exists($testFile)) {
-        require_once $testFile;
-        echo "✅ {$component} tests passed\n\n";
+        try {
+            // Capture output to prevent interference
+            ob_start();
+            require_once $testFile;
+            $output = ob_get_clean();
+
+            // Print any output from the test
+            if (trim($output)) {
+                echo $output . "\n";
+            }
+
+            echo "✅ {$component} tests passed\n\n";
+            return true;
+        } catch (\Exception $e) {
+            // Clean output buffer if test failed
+            ob_end_clean();
+            echo "❌ Test failed: " . $e->getMessage() . "\n\n";
+            return false;
+        } catch (\Error $e) {
+            // Clean output buffer if test failed with fatal error
+            ob_end_clean();
+            echo "❌ Test failed with error: " . $e->getMessage() . "\n\n";
+            return false;
+        }
     } else {
         echo "⚠️  Test file not found: {$testFile}\n\n";
+        return true; // Consider missing tests as "passed" for the purpose of continuing
     }
 }

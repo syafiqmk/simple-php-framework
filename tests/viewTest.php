@@ -46,16 +46,16 @@ $engine->setData(['message' => '<strong>Hello World</strong>']);
 
 // Test sections
 ob_start();
-$engine->startSection('content');
+Engine::section('content');
 echo "Section Content";
-$engine->endSection();
-$sectionOutput = $engine->yield('content');
+Engine::endSection();
+$sectionOutput = Engine::yield('content');
 ob_end_clean();
 
 assert($sectionOutput === 'Section Content', 'Sections should work');
 
 // Test HTML escaping
-$escaped = $engine->escape('<script>alert("XSS")</script>');
+$escaped = Engine::e('<script>alert("XSS")</script>');
 assert($escaped === '&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;', 'HTML escaping should work');
 
 // Clean up test files

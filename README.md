@@ -18,7 +18,10 @@ Framework PHP sederhana dengan arsitektur Model-View-Controller (MVC) yang mudah
 /database
   /migrations    - Berisi file-file migrasi database
 /public          - Direktori publik yang berisi file index.php sebagai entry point
+/routes          - Berisi file definisi routing web dan API
 /system          - Berisi file inti framework
+/tests           - Berisi skrip dan file untuk testing
+/docs            - Berisi dokumentasi framework
 ```
 
 ## Fitur
@@ -27,27 +30,27 @@ Framework PHP sederhana dengan arsitektur Model-View-Controller (MVC) yang mudah
 - Named routes dan route generation
 - Route grouping, prefixing, dan middleware
 - Resource routing untuk RESTful API
+- Routing API melalui `/routes/api.php`
 - Template engine dengan layout, section, dan includes
-- Autoloading kelas
+- Autoloading kelas (PSR-4)
 - ORM dasar untuk database
 - Pemisahan tampilan yang jelas dengan MVC
 - Session management
 - Request dan Response handling
+- Command line tools: migrate, serve, dan testing
 - Database migrations
-- Development server
+- Development server built-in
 - Pretty URL dengan .htaccess
 - Error handling
 
 ## Dokumentasi
 
 - [Routing](docs/routing.md)
-- [Controllers](docs/controllers.md)
-- [Models](docs/models.md)
-- [Views](docs/views.md)
 - [Middleware](docs/middleware.md)
 - [Sessions](docs/sessions.md)
-- [Migrations](docs/migrations.md)
-- [Configuration](docs/config.md)
+- [Views](docs/views.md)
+
+_Dokumentasi lainnya dalam pengembangan._
 
 ## Instalasi
 

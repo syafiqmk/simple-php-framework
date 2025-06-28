@@ -107,6 +107,42 @@ class Engine
     }
 
     /**
+     * Set view file path
+     * 
+     * @param string $view
+     * @return $this
+     */
+    public function setView($view)
+    {
+        $this->view = $view;
+        return $this;
+    }
+
+    /**
+     * Set view data
+     * 
+     * @param array $data
+     * @return $this
+     */
+    public function setData($data)
+    {
+        $this->data = $data;
+        return $this;
+    }
+
+    /**
+     * Set layout file path
+     * 
+     * @param string $layout
+     * @return $this
+     */
+    public function setLayout($layout)
+    {
+        $this->layout = $layout;
+        return $this;
+    }
+
+    /**
      * Render view
      * 
      * @return string
@@ -154,12 +190,25 @@ class Engine
      */
     protected function resolvePath($name, $subdirectory = '')
     {
+        // If $name is already a full path (used in tests)
+        if (file_exists($name)) {
+            return $name;
+        }
+
         $name = str_replace('.', '/', $name);
 
-        if (!empty($subdirectory)) {
-            $path = VIEW_PATH . $subdirectory . '/' . $name . '.php';
+        // Check if VIEW_PATH constant is defined (in test environment it might not be)
+        if (defined('VIEW_PATH')) {
+            $basePath = VIEW_PATH;
         } else {
-            $path = VIEW_PATH . $name . '.php';
+            // For test environment, use the test views directory
+            $basePath = dirname(__DIR__, 2) . '/tests/views/';
+        }
+
+        if (!empty($subdirectory)) {
+            $path = $basePath . $subdirectory . '/' . $name . '.php';
+        } else {
+            $path = $basePath . $name . '.php';
         }
 
         return $path;
