@@ -74,7 +74,11 @@ function runTest($component, $description)
         try {
             // Capture output to prevent interference
             ob_start();
-            require_once $testFile;
+
+            // Execute test in separate scope
+            $result = include $testFile;
+
+            // Get output content
             $output = ob_get_clean();
 
             // Print any output from the test
@@ -86,13 +90,19 @@ function runTest($component, $description)
             return true;
         } catch (\Exception $e) {
             // Clean output buffer if test failed
-            ob_end_clean();
-            echo "❌ Test failed: " . $e->getMessage() . "\n\n";
+            if (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            echo "❌ Test failed: " . $e->getMessage() . "\n";
+            echo "File: " . $e->getFile() . " on line " . $e->getLine() . "\n\n";
             return false;
         } catch (\Error $e) {
             // Clean output buffer if test failed with fatal error
-            ob_end_clean();
-            echo "❌ Test failed with error: " . $e->getMessage() . "\n\n";
+            if (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            echo "❌ Test failed with error: " . $e->getMessage() . "\n";
+            echo "File: " . $e->getFile() . " on line " . $e->getLine() . "\n\n";
             return false;
         }
     } else {

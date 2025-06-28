@@ -16,6 +16,11 @@ class Session
      */
     public static function start()
     {
+        // Skip actual session start in test environment
+        if (defined('SESSION_TEST_MODE')) {
+            return;
+        }
+
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
