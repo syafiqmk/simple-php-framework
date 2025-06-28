@@ -1,127 +1,46 @@
-<!DOCTYPE html>
-<html lang="id">
+<?php extend('layouts.app') ?>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $title ?></title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
+<?php section('title') ?>
+User Profile - Simple PHP Framework
+<?php endSection() ?>
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+<?php section('content') ?>
+<div class="card">
+    <h1>User Profile</h1>
 
-        header {
-            background-color: #35424a;
-            color: #fff;
-            padding: 20px 0;
-            text-align: center;
-        }
-
-        .navbar {
-            background-color: #333;
-            overflow: hidden;
-        }
-
-        .navbar a {
-            float: left;
-            display: block;
-            color: white;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
-
-        .navbar a:hover {
-            background-color: #ddd;
-            color: black;
-        }
-
-        .navbar .right {
-            float: right;
-        }
-
-        .content {
-            background-color: #fff;
-            padding: 20px;
-            margin-top: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn {
-            display: inline-block;
-            background-color: #35424a;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 4px;
-            text-decoration: none;
-        }
-
-        .profile-info {
-            margin-bottom: 20px;
-        }
-
-        .profile-info p {
-            margin: 5px 0;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #35424a;
-            color: #fff;
-        }
-    </style>
-</head>
-
-<body>
-    <header>
-        <div class="container">
-            <h1><?= $title ?></h1>
+    <?php if (has_flash('success')): ?>
+        <div class="alert alert-success">
+            <?= e(get_flash('success')) ?>
         </div>
-    </header>
+    <?php endif; ?>
 
-    <div class="navbar">
-        <div class="container">
-            <a href="/">Home</a>
-            <a href="/user">Profile</a>
-            <a href="/user/logout" class="right">Logout</a>
+    <div class="profile-details">
+        <div class="form-group">
+            <label>Username:</label>
+            <div class="form-control-static"><?= e($user['username'] ?? 'N/A') ?></div>
         </div>
-    </div>
 
-    <div class="container">
-        <div class="content">
-            <h2>Welcome, <?= $user['username'] ?>!</h2>
+        <div class="form-group">
+            <label>Email:</label>
+            <div class="form-control-static"><?= e($user['email'] ?? 'N/A') ?></div>
+        </div>
 
-            <div class="profile-info">
-                <p><strong>Username:</strong> <?= $user['username'] ?></p>
-                <p><strong>Email:</strong> <?= $user['email'] ?></p>
-                <p><strong>Member Since:</strong> <?= date('F j, Y', strtotime($user['created_at'])) ?></p>
+        <div class="form-group">
+            <label>Member Since:</label>
+            <div class="form-control-static">
+                <?= $user['created_at'] ? date('F j, Y', strtotime($user['created_at'])) : 'N/A' ?>
             </div>
-
-            <a href="#" class="btn">Edit Profile</a>
         </div>
     </div>
 
-    <footer>
-        <div class="container">
-            <p>&copy; <?= date('Y') ?> Simple PHP MVC Framework</p>
-        </div>
-    </footer>
-</body>
-
-</html>
+    <div class="profile-actions">
+        <a href="<?= route('user.edit', ['id' => $user['id'] ?? 0]) ?>" class="btn btn-primary">Edit Profile</a>
+        
+        <form method="POST" action="<?= route('user.delete', ['id' => $user['id'] ?? 0]) ?>" class="d-inline" 
+              onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.')">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn btn-danger">Delete Account</button>
+        </form>
+    </div>
+</div>
+<?php endSection() ?>

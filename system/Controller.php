@@ -31,6 +31,13 @@ class Controller
     protected $response;
 
     /**
+     * Session instance
+     *
+     * @var Session
+     */
+    protected $session;
+
+    /**
      * Set request object
      *
      * @param Request $request
@@ -50,6 +57,17 @@ class Controller
     public function setResponse(Response $response)
     {
         $this->response = $response;
+    }
+
+    /**
+     * Set session object
+     *
+     * @param Session $session
+     * @return void
+     */
+    public function setSession(Session $session)
+    {
+        $this->session = $session;
     }
 
     /**
@@ -85,40 +103,45 @@ class Controller
     }
 
     /**
-     * Load view
+     * Default layout for views
+     * 
+     * @var string|null
+     */
+    protected $layout = null;
+
+    /**
+     * Load view with template engine
      *
      * @param string $view View file
      * @param array $data Data to pass to the view
+     * @param string|null $layout Layout to use (null for no layout or default)
+     * @return mixed
+     */
+    protected function view($view, $data = [], $layout = null)
+    {
+        // Use specified layout or controller default
+        $layout = $layout ?? $this->layout;
+
+        // Render view with template engine
+        $content = \System\View::render($view, $data, $layout);
+
+        // Output the content
+        if ($this->response) {
+            return $this->response->html($content);
+        }
+
+        return $content;
+    }
+
+    /**
+     * Set layout for all views in this controller
+     * 
+     * @param string|null $layout
      * @return void
      */
-    protected function view($view, $data = [])
+    protected function setLayout($layout)
     {
-        // Convert view name to path
-        $viewFile = VIEW_PATH . str_replace('.', '/', $view) . '.php';
-
-        // Check if view file exists
-        if (file_exists($viewFile)) {
-            // Extract data to make it available in the view
-            extract($data);
-
-            // Start output buffering
-            ob_start();
-
-            // Include the view file
-            include $viewFile;
-
-            // Get the content of the buffer
-            $content = ob_get_clean();
-
-            // Output the content
-            if ($this->response) {
-                $this->response->html($content);
-            } else {
-                echo $content;
-            }
-        } else {
-            throw new \Exception("View file {$viewFile} not found");
-        }
+        $this->layout = $layout;
     }
 
     /**

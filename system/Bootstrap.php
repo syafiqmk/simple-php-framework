@@ -113,16 +113,13 @@ class Bootstrap
      */
     private function registerMiddleware()
     {
-        // Authentication middleware example
-        $this->router->registerMiddleware('auth', function ($request, $response) {
-            if (!Session::has('user_id')) {
-                $response->redirect('/user/login');
-                return false;
-            }
-            return true;
-        });
+        // Register global middleware
+        $this->router->registerGlobalMiddleware('System\Middleware\CsrfMiddleware');
 
-        // Add more middleware as needed
+        // Register named middleware
+        $this->router->registerMiddleware('auth', 'System\Middleware\AuthMiddleware');
+
+        // Register more middleware as needed
     }
 
     /**

@@ -17,11 +17,18 @@ class Router
     private $routes = [];
 
     /**
-     * Middleware handler
+     * Middleware container
      *
      * @var array
      */
     private $middleware = [];
+
+    /**
+     * Global middleware
+     *
+     * @var array
+     */
+    private $globalMiddleware = [];
 
     /**
      * Request instance
@@ -74,36 +81,79 @@ class Router
     }
 
     /**
-     * Register middleware
-     *
-     * @param string $name
-     * @param callable $callback
+     * Register global middleware
+     * 
+     * @param string $middlewareClass
      * @return void
      */
-    public function registerMiddleware($name, $callback)
+    public function registerGlobalMiddleware($middlewareClass)
     {
-        $this->middleware[$name] = $callback;
+        $this->globalMiddleware[] = $middlewareClass;
     }
 
     /**
-     * Apply middleware to request
-     *
-     * @param array $middleware
-     * @return bool
+     * Register route middleware
+     * 
+     * @param string $name
+     * @param string $middlewareClass
+     * @return void
      */
-    private function applyMiddleware($middleware)
+    public function registerMiddleware($name, $middlewareClass)
     {
-        foreach ($middleware as $name) {
-            if (isset($this->middleware[$name])) {
-                $result = call_user_func($this->middleware[$name], $this->request, $this->response);
+        $this->middleware[$name] = $middlewareClass;
+    }
 
-                if ($result === false) {
-                    return false;
-                }
+    /**
+     * Get middleware by name
+     * 
+     * @param string $name
+     * @return string|null
+     */
+    public function getMiddleware($name)
+    {
+        return $this->middleware[$name] ?? null;
+    }
+
+    /**
+     * Apply middleware to a callback
+     * 
+     * @param array $middlewareNames
+     * @param callable $callback
+     * @param Request $request
+     * @return mixed
+     */
+    protected function applyMiddleware($middlewareNames, $callback, $request)
+    {
+        $middlewareStack = function ($request) use ($callback) {
+            return $callback($request);
+        };
+
+        // First add global middleware
+        $middlewareClasses = [];
+        foreach ($this->globalMiddleware as $middlewareClass) {
+            $middlewareClasses[] = $middlewareClass;
+        }
+
+        // Then add route-specific middleware
+        foreach ($middlewareNames as $name) {
+            if (isset($this->middleware[$name])) {
+                $middlewareClasses[] = $this->middleware[$name];
             }
         }
 
-        return true;
+        // Build middleware stack (in reverse order so the first middleware is the outermost one)
+        foreach (array_reverse($middlewareClasses) as $middlewareClass) {
+            $middlewareInstance = new $middlewareClass();
+            $previousStack = $middlewareStack;
+            $middlewareStack = function ($request) use ($middlewareInstance, $previousStack) {
+                return $middlewareInstance->handle($request, function ($request) use ($previousStack) {
+                    return $previousStack($request);
+                });
+            };
+        }
+
+        // Execute the middleware stack
+        return $middlewareStack($request);
     }
 
     /**
@@ -156,55 +206,57 @@ class Router
             $params = $match['params'];
             $callback = $route['callback'];
 
-            // Apply middleware
-            if (!empty($route['middleware'])) {
-                $middlewareResult = $this->applyMiddleware($route['middleware']);
+            // Create callback function for the controller and method
+            $controllerCallback = function ($request) use ($callback, $route, $params) {
+                if (is_string($callback)) {
+                    // Handle 'Controller@method' format
+                    list($controller, $action) = explode('@', $callback);
 
-                if ($middlewareResult === false) {
-                    return $this->response->status(403)->html('Forbidden: Access Denied');
-                }
-            }
+                    // Check if controller is in a namespace
+                    if (strpos($controller, '\\') === false) {
+                        $controllerClass = 'App\\Controllers\\' . $controller;
+                    } else {
+                        $controllerClass = 'App\\Controllers\\' . $controller;
+                    }
 
-            // Process callback
-            if (is_string($callback)) {
-                // Handle 'Controller@method' format
-                list($controller, $action) = explode('@', $callback);
+                    if (!class_exists($controllerClass)) {
+                        return $this->notFound("Controller {$controllerClass} not found");
+                    }
 
-                // Check if controller is in a namespace
-                if (strpos($controller, '\\') === false) {
-                    $controllerClass = 'App\\Controllers\\' . $controller;
+                    $controllerInstance = new $controllerClass();
+
+                    // Inject request and response to controller
+                    if (method_exists($controllerInstance, 'setRequest')) {
+                        $controllerInstance->setRequest($this->request);
+                    }
+
+                    if (method_exists($controllerInstance, 'setResponse')) {
+                        $controllerInstance->setResponse($this->response);
+                    }
+
+                    // Inject session if supported
+                    if (method_exists($controllerInstance, 'setSession')) {
+                        $controllerInstance->setSession(new \System\Session());
+                    }
+
+                    // Check if method exists
+                    if (!method_exists($controllerInstance, $action)) {
+                        return $this->notFound("Method {$action} not found in {$controllerClass}");
+                    }
+
+                    // Execute controller method with parameters
+                    return call_user_func_array([$controllerInstance, $action], $params);
                 } else {
-                    $controllerClass = 'App\\Controllers\\' . $controller;
+                    // Execute closure with parameters
+                    return call_user_func_array($callback, $params);
                 }
+            };
 
-                if (!class_exists($controllerClass)) {
-                    return $this->notFound("Controller {$controllerClass} not found");
-                }
+            // Apply middleware and execute the callback
+            $middlewareNames = $route['middleware'] ?? [];
+            $result = $this->applyMiddleware($middlewareNames, $controllerCallback, $this->request);
 
-                $controllerInstance = new $controllerClass();
-
-                // Inject request and response to controller if supported
-                if (method_exists($controllerInstance, 'setRequest')) {
-                    $controllerInstance->setRequest($this->request);
-                }
-
-                if (method_exists($controllerInstance, 'setResponse')) {
-                    $controllerInstance->setResponse($this->response);
-                }
-
-                // Check if method exists
-                if (!method_exists($controllerInstance, $action)) {
-                    return $this->notFound("Method {$action} not found in {$controllerClass}");
-                }
-
-                // Execute controller method with parameters
-                return call_user_func_array([$controllerInstance, $action], $params);
-            }
-
-            // If callback is a closure
-            if (is_callable($callback)) {
-                return call_user_func_array($callback, array_values($params));
-            }
+            return $result;
         }
 
         // Route not found

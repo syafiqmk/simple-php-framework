@@ -27,6 +27,7 @@ Framework PHP sederhana dengan arsitektur Model-View-Controller (MVC) yang mudah
 - Named routes dan route generation
 - Route grouping, prefixing, dan middleware
 - Resource routing untuk RESTful API
+- Template engine dengan layout, section, dan includes
 - Autoloading kelas
 - ORM dasar untuk database
 - Pemisahan tampilan yang jelas dengan MVC
@@ -43,6 +44,8 @@ Framework PHP sederhana dengan arsitektur Model-View-Controller (MVC) yang mudah
 - [Controllers](docs/controllers.md)
 - [Models](docs/models.md)
 - [Views](docs/views.md)
+- [Middleware](docs/middleware.md)
+- [Sessions](docs/sessions.md)
 - [Migrations](docs/migrations.md)
 - [Configuration](docs/config.md)
 
@@ -80,10 +83,21 @@ Framework PHP sederhana dengan arsitektur Model-View-Controller (MVC) yang mudah
 ## Penggunaan Development Server
 
 ```
-php bin/serve.php [port]
+php bin/serve.php [port] [host]
 ```
 
-Port default adalah 8000 jika tidak disebutkan.
+Port default adalah 8000 dan host default adalah localhost jika tidak disebutkan.
+
+## Menjalankan Tests
+
+Framework ini memiliki system testing sederhana untuk menguji komponen-komponen utama:
+
+```
+php bin/test.php all           # Jalankan semua tests
+php bin/test.php router        # Jalankan hanya router tests
+php bin/test.php view          # Jalankan hanya view engine tests
+php bin/test.php middleware    # Jalankan hanya middleware tests
+```
 
 ## Database Migrations
 

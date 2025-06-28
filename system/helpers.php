@@ -162,37 +162,34 @@ if (!function_exists('csrf_token')) {
 
 if (!function_exists('csrf_field')) {
     /**
-     * Generate CSRF field
-     *
+     * Generate CSRF token field
+     * 
      * @return string
      */
     function csrf_field()
     {
-        return '<input type="hidden" name="_token" value="' . csrf_token() . '">';
+        // Generate token if it doesn't exist
+        if (!\System\Session::has('csrf_token')) {
+            \System\Session::set('csrf_token', bin2hex(random_bytes(32)));
+        }
+
+        $token = \System\Session::get('csrf_token');
+        return '<input type="hidden" name="csrf_token" value="' . $token . '">';
     }
 }
 
 if (!function_exists('view')) {
     /**
-     * Render view with data
+     * Render view with data using template engine
      *
      * @param string $view
      * @param array $data
-     * @return void
+     * @param string|null $layout
+     * @return string
      */
-    function view($view, $data = [])
+    function view($view, $data = [], $layout = null)
     {
-        $viewFile = VIEW_PATH . str_replace('.', '/', $view) . '.php';
-
-        if (file_exists($viewFile)) {
-            extract($data);
-
-            ob_start();
-            include $viewFile;
-            echo ob_get_clean();
-        } else {
-            throw new \Exception("View file {$viewFile} not found");
-        }
+        return \System\View::render($view, $data, $layout);
     }
 }
 
@@ -259,5 +256,111 @@ if (!function_exists('back')) {
         $referer = $_SERVER['HTTP_REFERER'] ?? '/';
         header("Location: {$referer}", true, $statusCode);
         exit;
+    }
+}
+
+if (!function_exists('extend')) {
+    /**
+     * Extend a layout in template
+     * 
+     * @param string $layout
+     * @return void
+     */
+    function extend($layout)
+    {
+        return \System\View::extend($layout);
+    }
+}
+
+if (!function_exists('section')) {
+    /**
+     * Start a section in template
+     * 
+     * @param string $name
+     * @return void
+     */
+    function section($name)
+    {
+        return \System\View::section($name);
+    }
+}
+
+if (!function_exists('endSection')) {
+    /**
+     * End a section in template
+     * 
+     * @return void
+     */
+    function endSection()
+    {
+        return \System\View::endSection();
+    }
+}
+
+if (!function_exists('yields')) {
+    /**
+     * Output content from a section
+     * 
+     * @param string $name
+     * @param string $default
+     * @return string
+     */
+    function yields($name, $default = '')
+    {
+        return \System\View::yield($name, $default);
+    }
+}
+
+if (!function_exists('include')) {
+    /**
+     * Include a sub-view
+     * 
+     * @param string $view
+     * @param array $data
+     * @return string
+     */
+    function includeView($view, $data = [])
+    {
+        return \System\View::include($view, $data);
+    }
+}
+
+if (!function_exists('e')) {
+    /**
+     * HTML escape string
+     * 
+     * @param string $string
+     * @return string
+     */
+    function e($string)
+    {
+        return \System\View::e($string);
+    }
+}
+
+if (!function_exists('has_flash')) {
+    /**
+     * Check if flash message exists
+     * 
+     * @param string $type
+     * @return bool
+     */
+    function has_flash($type)
+    {
+        return \System\Session::has('flash_' . $type);
+    }
+}
+
+if (!function_exists('get_flash')) {
+    /**
+     * Get and clear flash message
+     * 
+     * @param string $type
+     * @param string $default
+     * @return string
+     */
+    function get_flash($type, $default = '')
+    {
+        return \System\Session::flash('flash_' . $type, $default);
     }
 }

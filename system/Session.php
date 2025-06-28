@@ -35,6 +35,18 @@ class Session
     }
 
     /**
+     * Set session value (instance method)
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return void
+     */
+    public function setValue($key, $value)
+    {
+        self::set($key, $value);
+    }
+
+    /**
      * Get session value
      *
      * @param string $key
@@ -45,6 +57,18 @@ class Session
     {
         self::start();
         return isset($_SESSION[$key]) ? $_SESSION[$key] : $default;
+    }
+
+    /**
+     * Get session value (instance method)
+     *
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function getValue($key, $default = null)
+    {
+        return self::get($key, $default);
     }
 
     /**
@@ -60,6 +84,17 @@ class Session
     }
 
     /**
+     * Check if session key exists (instance method)
+     *
+     * @param string $key
+     * @return bool
+     */
+    public function hasKey($key)
+    {
+        return self::has($key);
+    }
+
+    /**
      * Remove session key
      *
      * @param string $key
@@ -71,6 +106,17 @@ class Session
         if (isset($_SESSION[$key])) {
             unset($_SESSION[$key]);
         }
+    }
+
+    /**
+     * Remove session key (instance method)
+     *
+     * @param string $key
+     * @return void
+     */
+    public function removeKey($key)
+    {
+        self::remove($key);
     }
 
     /**
@@ -89,6 +135,18 @@ class Session
     }
 
     /**
+     * Get session value and remove it (instance method)
+     *
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public function flashValue($key, $default = null)
+    {
+        return self::flash($key, $default);
+    }
+
+    /**
      * Set flash message
      *
      * @param string $type
@@ -98,6 +156,18 @@ class Session
     public static function setFlash($type, $message)
     {
         self::set('flash_' . $type, $message);
+    }
+
+    /**
+     * Set flash message (instance method)
+     *
+     * @param string $type
+     * @param string $message
+     * @return void
+     */
+    public function setFlashMessage($type, $message)
+    {
+        self::setFlash($type, $message);
     }
 
     /**

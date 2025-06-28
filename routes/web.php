@@ -17,6 +17,7 @@ use System\Route;
 Route::get('/', 'HomeController@index')->setName('home');
 Route::get('/about', 'HomeController@about')->setName('about');
 Route::get('/contact', 'HomeController@contact')->setName('contact');
+Route::post('/contact', 'HomeController@contactSubmit')->setName('contact.submit');
 
 // User routes dengan grup, prefix, dan middleware
 Route::prefix('user', function () {
