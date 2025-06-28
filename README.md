@@ -23,7 +23,10 @@ Framework PHP sederhana dengan arsitektur Model-View-Controller (MVC) yang mudah
 
 ## Fitur
 
-- Routing sederhana dan otomatis
+- Routing modern mirip Laravel dengan file khusus untuk route
+- Named routes dan route generation
+- Route grouping, prefixing, dan middleware
+- Resource routing untuk RESTful API
 - Autoloading kelas
 - ORM dasar untuk database
 - Pemisahan tampilan yang jelas dengan MVC
@@ -33,6 +36,15 @@ Framework PHP sederhana dengan arsitektur Model-View-Controller (MVC) yang mudah
 - Development server
 - Pretty URL dengan .htaccess
 - Error handling
+
+## Dokumentasi
+
+- [Routing](docs/routing.md)
+- [Controllers](docs/controllers.md)
+- [Models](docs/models.md)
+- [Views](docs/views.md)
+- [Migrations](docs/migrations.md)
+- [Configuration](docs/config.md)
 
 ## Instalasi
 
@@ -222,6 +234,67 @@ Routing mengikuti pola: `http://domain.com/controller/method/param1/param2`
 
 - Default controller: `Home`
 - Default method: `index`
+
+### Daftar Route
+
+Berikut adalah daftar route yang tersedia di aplikasi:
+
+```
+GET     /               HomeController@index
+GET     /about          AboutController@index
+POST    /contact         ContactController@submit
+GET     /users          UserController@index
+GET     /users/{id}    UserController@show
+```
+
+### Membuat Route Baru
+
+Untuk membuat route baru, buka file `routes/web.php` dan tambahkan kode berikut:
+
+```php
+$router->get('/new-route', 'NewController@index');
+```
+
+### Route dengan Parameter
+
+Untuk route yang memerlukan parameter, gunakan tanda kurung kurawal:
+
+```php
+$router->get('/users/{id}', 'UserController@show');
+```
+
+### Named Routes
+
+Anda juga dapat memberikan nama pada route untuk memudahkan pengalihan:
+
+```php
+$router->get('/profile', 'UserController@profile')->name('profile');
+```
+
+Untuk mengalihkan ke named route:
+
+```php
+$this->redirectRoute('profile');
+```
+
+### Route Grouping
+
+Untuk mengelompokkan route, gunakan method `group`:
+
+```php
+$router->group('/admin', function() {
+    $router->get('/dashboard', 'AdminController@dashboard');
+    $router->get('/settings', 'AdminController@settings');
+});
+```
+
+### Middleware
+
+Untuk menambahkan middleware pada route, gunakan method `middleware`:
+
+```php
+$router->get('/profile', 'UserController@profile')->middleware('auth');
+```
 
 ## Kontribusi
 

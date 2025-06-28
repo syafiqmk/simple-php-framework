@@ -61,16 +61,28 @@ class Bootstrap
         // Register autoloader
         spl_autoload_register([$this, 'autoload']);
 
+        // Load helper functions
+        $this->loadHelpers();
+
         // Initialize components
         $this->request = new Request();
         $this->response = new Response();
-        $this->router = new Router();
 
         // Start session
         Session::start();
+    }
 
-        // Parse URI
-        $this->parseUri();
+    /**
+     * Load helper functions
+     * 
+     * @return void
+     */
+    private function loadHelpers()
+    {
+        $helpersFile = BASE_PATH . '/system/helpers.php';
+        if (file_exists($helpersFile)) {
+            require_once $helpersFile;
+        }
     }
 
     /**
@@ -80,41 +92,56 @@ class Bootstrap
      */
     public function run()
     {
-        // Check if controller exists
-        $controllerFile = CONTROLLER_PATH . $this->controller . 'Controller.php';
+        try {
+            // Create router with request and response
+            $this->router = new Router($this->request, $this->response);
 
-        if (file_exists($controllerFile)) {
-            // Include the controller file
-            require_once $controllerFile;
+            // Register middleware
+            $this->registerMiddleware();
 
-            // Create controller class name
-            $controllerClass = 'App\\Controllers\\' . $this->controller . 'Controller';
-
-            // Check if controller class exists
-            if (class_exists($controllerClass)) {
-                $controller = new $controllerClass();
-
-                // Inject request and response to controller if supported
-                if (method_exists($controller, 'setRequest')) {
-                    $controller->setRequest($this->request);
-                }
-
-                if (method_exists($controller, 'setResponse')) {
-                    $controller->setResponse($this->response);
-                }
-
-                // Check if method exists
-                if (method_exists($controller, $this->method)) {
-                    call_user_func_array([$controller, $this->method], $this->params);
-                } else {
-                    $this->showError('Method ' . $this->method . ' not found in ' . $controllerClass);
-                }
-            } else {
-                $this->showError('Controller ' . $controllerClass . ' not found');
-            }
-        } else {
-            $this->showError('Controller file ' . $controllerFile . ' not found');
+            // Dispatch request through router
+            $this->router->dispatch($this->request->uri(), $this->request->method());
+        } catch (\Exception $e) {
+            $this->handleException($e);
         }
+    }
+
+    /**
+     * Register middleware
+     *
+     * @return void
+     */
+    private function registerMiddleware()
+    {
+        // Authentication middleware example
+        $this->router->registerMiddleware('auth', function ($request, $response) {
+            if (!Session::has('user_id')) {
+                $response->redirect('/user/login');
+                return false;
+            }
+            return true;
+        });
+
+        // Add more middleware as needed
+    }
+
+    /**
+     * Handle exceptions
+     *
+     * @param \Exception $e
+     * @return void
+     */
+    private function handleException(\Exception $e)
+    {
+        if (APP_DEBUG) {
+            echo '<h1>Error</h1>';
+            echo '<p>' . $e->getMessage() . '</p>';
+            echo '<pre>' . $e->getTraceAsString() . '</pre>';
+        } else {
+            $this->response->status(500);
+            include VIEW_PATH . 'errors/500.php';
+        }
+        exit;
     }
 
     /**
