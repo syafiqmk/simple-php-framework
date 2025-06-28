@@ -1,0 +1,85 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * Simple PHP MVC Framework
+ *
+ * CLI Tool 'Flash' - Framework command line interface tool
+ * Inspired by Laravel's Artisan and CodeIgniter's Spark
+ */
+
+// Check if running from command line
+if (php_sapi_name() !== 'cli') {
+    exit('This script can only be run from the command line.');
+}
+
+// Define base path
+define('BASE_PATH', dirname(__DIR__));
+
+// Load configuration if exists
+if (file_exists(BASE_PATH . '/config/config.php')) {
+    require_once BASE_PATH . '/config/config.php';
+}
+
+// Setup autoloader for console commands
+spl_autoload_register(function ($class) {
+    $prefix = 'System\\';
+    $base_dir = BASE_PATH . '/system/';
+
+    // Does the class use the namespace prefix?
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        // No, move to the next registered autoloader
+        return;
+    }
+
+    // Get the relative class name
+    $relative_class = substr($class, $len);
+
+    // Replace namespace separators with directory separators
+    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+
+    // If the file exists, require it
+    if (file_exists($file)) {
+        require $file;
+    }
+});
+
+// App namespace autoloader
+spl_autoload_register(function ($class) {
+    $prefix = 'App\\';
+    $base_dir = BASE_PATH . '/app/';
+
+    // Does the class use the namespace prefix?
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        return;
+    }
+
+    // Get the relative class name
+    $relative_class = substr($class, $len);
+
+    // Replace namespace separators with directory separators
+    // Use correct casing - keep as is for app/Console and app/Console/Commands
+    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+
+    // If the file exists, require it
+    if (file_exists($file)) {
+        require $file;
+    } else {
+        // Try with lowercase path for compatibility with existing structure
+        $lower_file = $base_dir . strtolower(str_replace('\\', '/', $relative_class)) . '.php';
+        if (file_exists($lower_file)) {
+            require $lower_file;
+        }
+    }
+});
+
+// Run the command
+try {
+    $runner = new \System\Console\CommandRunner($argv);
+    $runner->run();
+} catch (\Exception $e) {
+    echo "\n\033[31mError: " . $e->getMessage() . "\033[0m\n\n";
+    exit(1);
+}

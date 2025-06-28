@@ -4,7 +4,52 @@
 [![GitHub issues](https://img.shields.io/github/issues/syafiqmk/simple-php-framework)](https://github.com/syafiqmk/simple-php-framework/issues)
 [![GitHub stars](https://img.shields.io/github/stars/syafiqmk/simple-php-framework)](https://github.com/syafiqmk/simple-php-framework/stargazers)
 
-Framework PHP sederhana dengan arsitektur Model-View-Controller (MVC) yang mudah digunakan dan memiliki performa optimal.
+Framework PHP sederhana dengan arsitektur Model-View-Controller (MVC) yang mudah digunakan dan memiliki performa optimal. Dilengkapi dengan command line interface (CLI) untuk mempermudah development.
+
+## Command Line Interface (CLI)
+
+Framework ini dilengkapi dengan Command Line Interface (CLI) bernama "Flash" yang terinspirasi dari Laravel Artisan dan CodeIgniter Spark. CLI ini memudahkan pengembangan dengan menyediakan perintah-perintah untuk membuat controller, model, dan lainnya.
+
+### Penggunaan Dasar
+
+```bash
+# Melihat daftar perintah yang tersedia
+php bin/flash help
+
+# Menjalankan server development
+php bin/flash serve
+
+# Membuat controller baru
+php bin/flash make:controller NamaController
+
+# Membuat model baru
+php bin/flash make:model NamaModel
+
+# Menjalankan migrasi database
+php bin/flash migrate
+
+# Membuat perintah kustom
+php bin/flash make:command NamaPerintah
+```
+
+### Membuat Perintah Kustom
+
+Anda dapat membuat perintah kustom dengan menggunakan:
+
+```bash
+php bin/flash make:command NamaPerintah
+```
+
+Perintah di atas akan membuat file command baru di `app/Console/Commands/`. Setelah membuat command, Anda perlu mendaftarkannya di `app/Console/CommandServiceProvider.php`:
+
+```php
+// app/Console/CommandServiceProvider.php
+public static function register($runner)
+{
+    // Register all custom commands here
+    $runner->registerCommand(new Commands\NamaPerintahCommand());
+}
+```
 
 ## Struktur Framework
 

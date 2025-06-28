@@ -13,9 +13,9 @@ define('APP_DEBUG', true);
 
 // Database configuration
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'mvc_database');
+define('DB_NAME', 'simple_framework');
 define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_PASS', 'dbpass');
 define('DB_CHARSET', 'utf8mb4');
 
 // Paths
